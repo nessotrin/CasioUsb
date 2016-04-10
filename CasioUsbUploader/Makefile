@@ -10,7 +10,7 @@ BUILD_FLAGS = $(AUTO_INCLUDE) -I ../src/
 LINK_FLAGS = -L ../build/ -lCasioUsb -lusb-1.0
 
 # Final binary
-BIN = CasioUsbLogger
+BIN = CasioUsbUploader
 # Put all auto generated stuff to this build dir.
 BUILD_DIR = build/
 
