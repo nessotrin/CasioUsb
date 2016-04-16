@@ -3,22 +3,25 @@
 #include <Socket.h>
 #include <CalcConnector.h>
 #include <Log.h>
-#include <CasioUsbVersion.h>
-
-#define VERSION_MAJOR 0
-#define VERSION_MINOR 0
-#define VERSION_RELEASE 1
-#define VERSION_DATE_STRING "16 april 2016"
-
+#include <CasioUsbLoggerVersion.h>
+#include <ArgReader.h>
 
 #define BUFFER_STEP_SIZE 64
 
 int main(int argc, char **argv)
 {
-	printf("Casio Usb Logger [%s] V%d.%d.%d by Nessotrin\n",VERSION_DATE_STRING,VERSION_MAJOR,VERSION_MINOR,VERSION_RELEASE);
-    CasioUsbVersion::printVersion();
+    Log::setLoglevel(CASIOUSB_LOGLEVEL_INFO);
+
+    ArgReader argReader;
+    if(argReader.readArg(argc,argv))
+    {
+        return 1;
+    }
     
-    Log::setLoglevel(CASIOUSB_LOGLEVEL_DEBUG);
+    if(!argReader.isQuiet())
+    {
+        CasioUsbLoggerVersion::printVersion();
+    }
 
     UsbContext context;
     if(context.initUsbContext())

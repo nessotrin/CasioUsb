@@ -4,6 +4,7 @@
 #include <Log.h>
 #include <ArgHelp.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 ArgReader::ArgReader()
 {
@@ -11,9 +12,8 @@ ArgReader::ArgReader()
     folderName = NULL;
     deviceName = NULL;
     allowOverwrite = false;
+    quiet = false;
 }
-
-#include <stdio.h>
 
 bool ArgReader::isArgPresent(char * argToCheck, char * shortArg, char * longArg)
 {
@@ -43,7 +43,7 @@ bool ArgReader::readArg(int argc, char** argv)
     {
         if(isArgPresent(argv[i],(char*)"-f",(char*)"--filename"))
         {
-            if(i+1 >= argc)
+            if(i+1 >= argc || argv[i+1][0] == '-')
             {
                 errorMissingArg(argv[i]);
                 return true;
@@ -57,7 +57,7 @@ bool ArgReader::readArg(int argc, char** argv)
         
         if(isArgPresent(argv[i],(char*)"-F",(char*)"--foldername"))
         {
-            if(i+1 >= argc)
+            if(i+1 >= argc || argv[i+1][0] == '-')
             {
                 errorMissingArg(argv[i]);
                 return true;
@@ -71,7 +71,7 @@ bool ArgReader::readArg(int argc, char** argv)
         
         if(isArgPresent(argv[i],(char*)"-d",(char*)"--devicename"))
         {
-            if(i+1 >= argc)
+            if(i+1 >= argc || argv[i+1][0] == '-')
             {
                 errorMissingArg(argv[i]);
                 return true;
@@ -85,7 +85,7 @@ bool ArgReader::readArg(int argc, char** argv)
         
         if(isArgPresent(argv[i],(char*)"-l",(char*)"--loglevel"))
         {
-            if(i+1 >= argc)
+            if(i+1 >= argc || argv[i+1][0] == '-')
             {
                 errorMissingArg(argv[i]);
                 return true;
@@ -103,7 +103,7 @@ bool ArgReader::readArg(int argc, char** argv)
         
         if(isArgPresent(argv[i],(char*)"-q",(char*)"--quiet"))
         {
-            Log::setLoglevel(-1); //Quiet
+            quiet = true;
         }
         
         if(isArgPresent(argv[i],(char*)"-w",(char*)"--overwrite"))
@@ -135,6 +135,11 @@ bool ArgReader::readArg(int argc, char** argv)
         deviceName = "fls0";
     }
     
+    if(quiet)
+    {
+        Log::setLoglevel(-1); //Quiet
+    }
+    
     return false;
 }
 
@@ -150,7 +155,11 @@ const char * ArgReader::getDeviceName()
 {
     return deviceName;
 }
-bool ArgReader::getAllowOverwrite()
+bool ArgReader::isOverwriteAllowed()
 {
     return allowOverwrite;
+}
+bool ArgReader::isQuiet()
+{
+    return quiet;
 }

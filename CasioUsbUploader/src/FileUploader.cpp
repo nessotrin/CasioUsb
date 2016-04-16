@@ -42,7 +42,8 @@ bool FileUploader::sendFileRequest(const char * foldername, int dataSize, const 
     }
     else
     {
-        printf("Bad file send answer: type:%#x subtype:%#x extended size: %d\n",info.type,info.subtype,info.extendedData->getSize());
+        Log::error("Bad answer from the calc !");
+        printf("DEBUG INFO: type:%#x subtype:%#x extended size: %d\n",info.type,info.subtype,info.extendedData->getSize());
         return true;
     }
 

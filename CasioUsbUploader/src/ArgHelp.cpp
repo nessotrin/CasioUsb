@@ -2,8 +2,11 @@
 
 #include <stdio.h>
 
+#include <CasioUsbUploaderVersion.h>
+
 void ArgHelp::showHelp()
 {
+    CasioUsbUploaderVersion::printVersion();
     printf("Available arguments: \n");
     printf("-f --filename     file to upload [REQUIRED]\n");
     printf("-F --foldername   which folder to use, [default: device's root]\n");

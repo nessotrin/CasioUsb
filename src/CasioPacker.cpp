@@ -55,8 +55,8 @@ int CasioPacker::insertExtendedData(Buffer * data, Buffer * workingBuffer)
     
     if(CasioEscaper::escapeBuffer(data,&escapedData))
     {
-        Log::error("insertExtendedData: impossible: too big for escape !");
-        printf("data size %d, working buffer size %d\n",data->getSize(),workingBuffer->getSize());
+        Log::error("insertExtendedData: IMPOSSIBLE: too big for escape !");
+        printf("DEBUG INFO: Data size %d, working buffer size %d\n",data->getSize(),workingBuffer->getSize());
         return -1;
     }
 

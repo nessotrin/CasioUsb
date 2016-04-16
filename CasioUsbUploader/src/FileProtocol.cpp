@@ -48,8 +48,6 @@ bool FileProtocol::buildSendRequestPacket(Buffer * output, int dataSize, const c
     return false;
 }
 
-#define min(a,b) (((a)<(b)?(a):(b)))
-
 bool FileProtocol::buildFilePartPacket(Buffer * output, Buffer * data, int partId, int partCount, int partSize)
 {
     unsigned char temporaryData[2048];
@@ -64,7 +62,7 @@ bool FileProtocol::buildFilePartPacket(Buffer * output, Buffer * data, int partI
     AsciiConverter::numberToAscii(partId+1,temporaryData+4,4); // starts at 1
     
     int dataBeginning = partId*partSize;
-    int dataSize = min(data->getSize()-dataBeginning,partSize); // do not overread the data
+    int dataSize = std::min(data->getSize()-dataBeginning,partSize); // do not overread the data
     
     memcpy(temporaryData+8,data->getData()+dataBeginning,dataSize);
     

@@ -14,7 +14,8 @@ bool UsbContext::initUsbContext()
 {
     if(libusb_init(&libusbContext) != 0)
     {
-        Log::error("can't init libusb !\n");
+        Log::error("Can't init libusb !");
+        Log::info("Check your system, CasioUsb probably ins't responsible for this");
         return true;
     }
     return false;

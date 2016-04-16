@@ -56,7 +56,7 @@ bool Socket::bulkTransfereBuffer(Buffer * bufferToUse, unsigned char endpoint)
 {
     if(!isConnected)
     {
-        Log::error("bulkTransfere: Not connected !");
+        Log::error("bulkTransfere: This socket ins't connected !");
         return CASIOUSB_SOCKET_ERROR;
     }
 

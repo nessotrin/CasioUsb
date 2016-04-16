@@ -14,23 +14,21 @@
 #include <ArgReader.h>
 
 
-#define VERSION_MAJOR 0
-#define VERSION_MINOR 0
-#define VERSION_RELEASE 1
-#define VERSION_DATE_STRING "16 april 2016"
-
+#include <CasioUsbUploaderVersion.h>
 
 int main(int argc, char **argv)
 {
-	printf("Casio Usb Uploader [%s] V%d.%d.%d by Nessotrin\n",VERSION_DATE_STRING,VERSION_MAJOR,VERSION_MINOR,VERSION_RELEASE);
-    CasioUsbVersion::printVersion();
-
     Log::setLoglevel(CASIOUSB_LOGLEVEL_INFO);
 
     ArgReader argReader;
     if(argReader.readArg(argc,argv))
     {
         return 1;
+    }
+    
+    if(!argReader.isQuiet())
+    {
+        CasioUsbUploaderVersion::printVersion();
     }
 
 
@@ -57,7 +55,7 @@ int main(int argc, char **argv)
                                ,argReader.getFolderName()
                                ,argReader.getFileName()
                                ,argReader.getDeviceName()
-                               ,argReader.getAllowOverwrite()?0x02:0x00))
+                               ,argReader.isOverwriteAllowed()?0x02:0x00))
     {
         Log::error("Failed to upload the file !");
     }

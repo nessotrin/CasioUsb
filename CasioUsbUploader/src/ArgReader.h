@@ -10,6 +10,7 @@ private:
     const char * folderName;
     const char * deviceName;
     bool allowOverwrite;
+    bool quiet;
 
     bool isArgPresent(char * argToCheck, char * shortArg, char * longArg);
     void errorMissingArg(char * argMissused);
@@ -20,7 +21,8 @@ public:
     const char * getFileName();
     const char * getFolderName();
     const char * getDeviceName();
-    bool getAllowOverwrite();
+    bool isOverwriteAllowed();
+    bool isQuiet();
 
 };
 

@@ -26,7 +26,7 @@ libusb_device * CalcConnector::findCalcDevice(UsbContext * usbContext, unsigned 
 
         if(libusb_get_device_descriptor(deviceList[idx], &deviceDescriptor) != 0)
         {
-            Log::info("Buggy USB peripheral encountered !");
+            Log::info("Buggy USB peripheral in list !");
         }
 
         if(deviceDescriptor.idVendor == idVendor && deviceDescriptor.idProduct == idProduct)
@@ -63,6 +63,11 @@ libusb_device_handle * CalcConnector::openDevice(UsbContext * usbContext, libusb
             Log::error("Not enought permission to open the calculator, run as root or add a rule to udev !");
             return NULL;
         }
+        else if(result == LIBUSB_ERROR_NO_DEVICE)
+        {
+            Log::error("Device seems to have disconnected !");
+            Log::info("This is a known bug on windows, waiting libusb to be fixed ...");
+        }
         else
         {
             Log::error("Unknown error while opening the socket to the calculator !");
@@ -82,7 +87,7 @@ libusb_device_handle * CalcConnector::connect(UsbContext * usbContext)
     if(device  == NULL) 
     {
         Log::error("Failed to find the calc !");
-        Log::info("Check the receive mode ?");
+        Log::info("Check that it's in receive mode ?");
         return NULL;
     }
     
