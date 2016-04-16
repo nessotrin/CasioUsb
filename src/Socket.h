@@ -9,16 +9,16 @@
 
 #include <Buffer.h>
 
-#define SOCKET_TIMEOUT 2000
+#define CASIOUSB_SOCKET_TIMEOUT 2000
 
-#define ENDPOINT_OUT (0x01)
-#define ENDPOINT_IN (0x82)
+#define CASIOUSB_ENDPOINT_OUT (0x01)
+#define CASIOUSB_ENDPOINT_IN (0x82)
 
 
-enum SOCKET_RESULT
+enum CASIOUSB_SOCKET_RESULT
 {
-    SOCKET_OK = 0,
-    SOCKET_ERROR,
+    CASIOUSB_SOCKET_OK = 0,
+    CASIOUSB_SOCKET_ERROR,
 };
 
 class Socket
@@ -33,8 +33,8 @@ public:
 
 
     bool setDeviceHandle(libusb_device_handle * newDeviceHandle);
-    SOCKET_RESULT sendBuffer(Buffer * bufferToSend);
-    SOCKET_RESULT receiveBuffer(Buffer * bufferToFill);
+    CASIOUSB_SOCKET_RESULT sendBuffer(Buffer * bufferToSend);
+    CASIOUSB_SOCKET_RESULT receiveBuffer(Buffer * bufferToFill);
     bool bulkTransfereBuffer(Buffer * bufferToUse, unsigned char endpoint);
 };
 

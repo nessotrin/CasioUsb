@@ -28,28 +28,28 @@ bool Socket::setDeviceHandle(libusb_device_handle* newDeviceHandle)
     return false;
 }
 
-SOCKET_RESULT Socket::sendBuffer(Buffer * bufferToSend)
+CASIOUSB_SOCKET_RESULT Socket::sendBuffer(Buffer * bufferToSend)
 {
-    if(bulkTransfereBuffer(bufferToSend, ENDPOINT_OUT))
+    if(bulkTransfereBuffer(bufferToSend, CASIOUSB_ENDPOINT_OUT))
     {
         Log::error("receiveBuffer: Error sending bulk");
         bufferToSend->setSize(0);
-        return SOCKET_ERROR;
+        return CASIOUSB_SOCKET_ERROR;
     }
     
-    return SOCKET_OK;
+    return CASIOUSB_SOCKET_OK;
 }
 
-SOCKET_RESULT Socket::receiveBuffer(Buffer * bufferToFill)
+CASIOUSB_SOCKET_RESULT Socket::receiveBuffer(Buffer * bufferToFill)
 {
-    if(bulkTransfereBuffer(bufferToFill, ENDPOINT_IN))
+    if(bulkTransfereBuffer(bufferToFill, CASIOUSB_ENDPOINT_IN))
     {
         Log::error("receiveBuffer: Error receiving bulk");
         bufferToFill->setSize(0);
-        return SOCKET_ERROR;
+        return CASIOUSB_SOCKET_ERROR;
     }
     
-    return SOCKET_OK;
+    return CASIOUSB_SOCKET_OK;
 }
 
 bool Socket::bulkTransfereBuffer(Buffer * bufferToUse, unsigned char endpoint)
@@ -57,7 +57,7 @@ bool Socket::bulkTransfereBuffer(Buffer * bufferToUse, unsigned char endpoint)
     if(!isConnected)
     {
         Log::error("bulkTransfere: Not connected !");
-        return SOCKET_ERROR;
+        return CASIOUSB_SOCKET_ERROR;
     }
 
     int processed;
@@ -65,7 +65,7 @@ bool Socket::bulkTransfereBuffer(Buffer * bufferToUse, unsigned char endpoint)
                                                endpoint,
                                                bufferToUse->getData(),
                                                bufferToUse->getSize(),
-                                               &processed, SOCKET_TIMEOUT);
+                                               &processed, CASIOUSB_SOCKET_TIMEOUT);
     bufferToUse->setSize(processed);
     
     if(result != 0)

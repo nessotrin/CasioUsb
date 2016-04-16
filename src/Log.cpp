@@ -10,28 +10,28 @@ Log::Log()
 
 void Log::debug(const char * messageToLog)
 {
-    if(Log::loglevel >= LOGLEVEL_DEBUG)
+    if(Log::loglevel >= CASIOUSB_LOGLEVEL_DEBUG)
     {
         printf("[DEBUG]: %s\n",messageToLog);
     }
 }
 void Log::info(const char * messageToLog)
 {
-    if(Log::loglevel >= LOGLEVEL_INFO)
+    if(Log::loglevel >= CASIOUSB_LOGLEVEL_INFO)
     {
         printf("[INFO]: %s\n",messageToLog);
     }
 }
 void Log::warning(const char * messageToLog)
 {
-    if(Log::loglevel >= LOGLEVEL_WARNING)
+    if(Log::loglevel >= CASIOUSB_LOGLEVEL_WARNING)
     {
         printf("[WARNING]: %s\n",messageToLog);
     }
 }
 void Log::error(const char * messageToLog)
 {
-    if(Log::loglevel >= LOGLEVEL_ERROR)
+    if(Log::loglevel >= CASIOUSB_LOGLEVEL_ERROR)
     {
         printf("[ERROR]: %s\n",messageToLog);
     }

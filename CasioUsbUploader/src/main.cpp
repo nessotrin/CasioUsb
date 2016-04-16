@@ -17,7 +17,7 @@
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 0
 #define VERSION_RELEASE 1
-#define VERSION_DATE_STRING "09 april 2016"
+#define VERSION_DATE_STRING "16 april 2016"
 
 
 int main(int argc, char **argv)
@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 	printf("Casio Usb Uploader [%s] V%d.%d.%d by Nessotrin\n",VERSION_DATE_STRING,VERSION_MAJOR,VERSION_MINOR,VERSION_RELEASE);
     CasioUsbVersion::printVersion();
 
-    Log::setLoglevel(LOGLEVEL_INFO);
+    Log::setLoglevel(CASIOUSB_LOGLEVEL_INFO);
 
     ArgReader argReader;
     if(argReader.readArg(argc,argv))

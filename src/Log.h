@@ -1,12 +1,12 @@
 #ifndef _LOG_H___
 #define _LOG_H___
 
-enum LOGLEVEL
+enum CASIOUSB_LOGLEVEL
 {
-    LOGLEVEL_ERROR = 0,
-    LOGLEVEL_WARNING,
-    LOGLEVEL_INFO,
-    LOGLEVEL_DEBUG = 3,
+    CASIOUSB_LOGLEVEL_ERROR = 0,
+    CASIOUSB_LOGLEVEL_WARNING,
+    CASIOUSB_LOGLEVEL_INFO,
+    CASIOUSB_LOGLEVEL_DEBUG = 3,
 };
 
 class Log
@@ -18,7 +18,7 @@ public:
 
     Log();
 
-    static void setLoglevel(int newLoglevel);
+    static void setLoglevel(int newCASIOUSB_LOGLEVEL);
     static int getLoglevel();
     
     static void debug(const char * messageToLog);
