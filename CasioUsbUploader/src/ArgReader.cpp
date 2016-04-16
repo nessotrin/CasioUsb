@@ -15,17 +15,37 @@ ArgReader::ArgReader()
 
 #include <stdio.h>
 
+bool ArgReader::isArgPresent(char * argToCheck, char * shortArg, char * longArg)
+{
+    return strcmp(argToCheck, shortArg) == 0 || strcmp(argToCheck, longArg) == 0;
+}
+
+void ArgReader::errorMissingArg(char * argMissused)
+{
+    char * warningTextBase = " without following argument!";
+    char * errorMessage = (char *) malloc(strlen(argMissused)+strlen(warningTextBase));
+    if(errorMessage == NULL)
+    {
+        Log::error("warnMissingArg: failed to allocate memory !");
+        exit(1);
+    }
+    strcpy(errorMessage,argMissused);
+    strcpy(errorMessage+strlen(argMissused),warningTextBase);
+    Log::error(errorMessage);
+    free(errorMessage);
+
+    ArgHelp::showHelp();
+}
+
 bool ArgReader::readArg(int argc, char** argv)
 {
     for(int i = 1 ; i < argc ; i++)
     {
-        if(strcmp(argv[i], "-f") == 0)
+        if(isArgPresent(argv[i],(char*)"-f",(char*)"--filename"))
         {
             if(i+1 >= argc)
             {
-                printf("%d %d\n",i,argc);
-                Log::error("-f without argument!");
-                ArgHelp::showHelp();
+                errorMissingArg(argv[i]);
                 return true;
             }
             fileName = argv[i+1];
@@ -34,12 +54,12 @@ bool ArgReader::readArg(int argc, char** argv)
                 Log::warning("File name might be too long (12 max) !");
             }
         }
-        if(strcmp(argv[i], "-F") == 0)
+        
+        if(isArgPresent(argv[i],(char*)"-F",(char*)"--foldername"))
         {
             if(i+1 >= argc)
             {
-                Log::error("-F without argument!");
-                ArgHelp::showHelp();
+                errorMissingArg(argv[i]);
                 return true;
             }
             folderName = argv[i+1];
@@ -48,12 +68,12 @@ bool ArgReader::readArg(int argc, char** argv)
                 Log::warning("Folder name might be too long (8 max) !");
             }
         }
-        if(strcmp(argv[i], "-d") == 0)
+        
+        if(isArgPresent(argv[i],(char*)"-d",(char*)"--devicename"))
         {
             if(i+1 >= argc)
             {
-                Log::error("-d without argument!");
-                ArgHelp::showHelp();
+                errorMissingArg(argv[i]);
                 return true;
             }
             deviceName = argv[i+1];
@@ -62,12 +82,12 @@ bool ArgReader::readArg(int argc, char** argv)
                 Log::warning("Device name might be too long (4 max) !");
             }
         }
-        if(strcmp(argv[i], "-l") == 0)
+        
+        if(isArgPresent(argv[i],(char*)"-l",(char*)"--loglevel"))
         {
             if(i+1 >= argc)
             {
-                Log::error("-l without argument!");
-                ArgHelp::showHelp();
+                errorMissingArg(argv[i]);
                 return true;
             }
             int newLoglevel = (int)strtol(argv[i+1], (char **)NULL, 10);
@@ -80,13 +100,21 @@ bool ArgReader::readArg(int argc, char** argv)
             }
             Log::setLoglevel(newLoglevel);
         }
-        if(strcmp(argv[i], "-q") == 0)
+        
+        if(isArgPresent(argv[i],(char*)"-q",(char*)"--quiet"))
         {
             Log::setLoglevel(-1); //Quiet
         }
-        if(strcmp(argv[i], "-w") == 0)
+        
+        if(isArgPresent(argv[i],(char*)"-w",(char*)"--overwrite"))
         {
             allowOverwrite = true;
+        }
+        
+        if(isArgPresent(argv[i],(char*)"-h",(char*)"--help"))
+        {
+            ArgHelp::showHelp();
+            return true;
         }
     }
     

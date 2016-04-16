@@ -5,10 +5,11 @@
 void ArgHelp::showHelp()
 {
     printf("Available arguments: \n");
-    printf("-f FILENAME (REQUIRED)\n");
-    printf("-F FOLDERNAME (default to root)\n");
-    printf("-d DEVICENAME (internal flash: fls0 DEFAULT, external sd: crd0)\n");
-    printf("-w (allow overwrite, disabled by default)\n");
-    printf("-l (log level, 0 to 3, default to 2)\n");
-    printf("-q (quiet, disabled by default)\n");
+    printf("-f --filename     file to upload [REQUIRED]\n");
+    printf("-F --foldername   which folder to use, [default: device's root]\n");
+    printf("-d --devicename   which device to use, internal flash: fls0 [by default], external sd: crd0\n");
+    printf("-w --overwrite    allow overwrite, [disabled by default]\n");
+    printf("-l --loglevel     log level, 0 to 3 [default: 2]\n");
+    printf("-q --quiet        quiet [disabled by default]\n");
+    printf("-h --help         show this help\n");
 }

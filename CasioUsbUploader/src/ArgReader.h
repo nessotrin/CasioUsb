@@ -10,6 +10,9 @@ private:
     const char * folderName;
     const char * deviceName;
     bool allowOverwrite;
+
+    bool isArgPresent(char * argToCheck, char * shortArg, char * longArg);
+    void errorMissingArg(char * argMissused);
     
 public:
     ArgReader();
