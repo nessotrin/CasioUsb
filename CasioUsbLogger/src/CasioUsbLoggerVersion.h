@@ -1,0 +1,17 @@
+#ifndef _CASIOUSBLOGGERVERSION_H_
+#define _CASIOUSBLOGGERVERSION_H_
+
+#define CASIOUSBLOGGER_VERSION_MAJOR 0
+#define CASIOUSBLOGGER_VERSION_MINOR 0
+#define CASIOUSBLOGGER_VERSION_RELEASE 2
+#define CASIOUSBLOGGER_VERSION_DATE_STRING "16 april 2016"
+
+class CasioUsbLoggerVersion
+{
+public:
+    static void printVersion();
+
+
+};
+
+#endif // _CASIOUSBLOGGERVERSION_H_
