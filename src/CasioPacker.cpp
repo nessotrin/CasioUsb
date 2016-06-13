@@ -11,14 +11,20 @@
 #include <Log.h>
 
 #include <stdio.h>
-
-#define MAX_CASIO_PACKET_SIZE 1024
+#include <stdlib.h>
 
 bool CasioPacker::pack(CasioPacketInfo packetInfo, Buffer * output)
 {
+    output->setData((unsigned char *) malloc(4));
+    if(output->getData() == NULL)
+    {
+        Log::error("Failed to alloc !");
+        return true;
+    }
+    output->setSize(4);
+    
     output->getData()[0] = packetInfo.type;
     AsciiConverter::numberToAscii(packetInfo.subtype,output->getData()+1,2);
-
     
     int extraSize = insertExtendedData(packetInfo.extendedData,output);
     if(extraSize == -1)
@@ -26,70 +32,59 @@ bool CasioPacker::pack(CasioPacketInfo packetInfo, Buffer * output)
         return true;
     }
     
+    unsigned char checksum = CasioChecksum::compute(output);
     
-    Buffer checksumBuffer(output->getData(),4+extraSize);
-    unsigned char checksum = CasioChecksum::compute(&checksumBuffer);
-    
-    
-    AsciiConverter::numberToAscii(checksum,output->getData()+4+extraSize,2);
-    
+    output->setData((unsigned char *)realloc(output->getData(),4+extraSize+2));
+    if(output->getData() == NULL)
+    {
+        Log::error("Failed to realloc !");
+        return true;
+    }
     output->setSize(4+extraSize+2);
     
-    /* DEBUG
-    printf("Packet dump: ");
-    for(int i = 0 ; i < output->getSize() ; i++)
-    {
-        printf(" (%d) %#x [%c] ",i-8,output->getData()[i],output->getData()[i]);
-    }
-    printf("\n");
-    */
+    AsciiConverter::numberToAscii(checksum,output->getData()+4+extraSize,2); // append
+
     
     return false;
 }
 
-int CasioPacker::insertExtendedData(Buffer * data, Buffer * workingBuffer)
+/*
+ * Appends the escaped extended data to a packet buffer
+ * 
+ * 
+ * 
+ */
+int CasioPacker::insertExtendedData(Buffer * toInsert, Buffer * workingBuffer)
 {
-    unsigned char escapedDataData[MAX_CASIO_PACKET_SIZE*2];
-    Buffer escapedData(escapedDataData,MAX_CASIO_PACKET_SIZE*2);
+    int insertSize = 0;  
     
-    
-    if(CasioEscaper::escapeBuffer(data,&escapedData))
+    if(toInsert->getSize() > 0)
     {
-        Log::error("insertExtendedData: IMPOSSIBLE: too big for escape !");
-        printf("DEBUG INFO: Data size %d, working buffer size %d\n",data->getSize(),workingBuffer->getSize());
-        return -1;
+        CasioEscaper::escapeBuffer(toInsert,workingBuffer,8);
+        insertSize = workingBuffer->getSize()-8; //get the escaped size
+        
+        workingBuffer->setData((unsigned char *)realloc(workingBuffer->getData(),workingBuffer->getSize()+4)); //adds the space for size bytes
+        if(workingBuffer->getData() == NULL)
+        {
+            Log::error("Failed to realloc !");
+            return -1;
+        }
+        workingBuffer->setSize(workingBuffer->getSize()+4);
+        
+        AsciiConverter::numberToAscii(insertSize,workingBuffer->getData()+4,4); //writes the size
+        insertSize += 4; // add the size bytes
     }
 
-    AsciiConverter::numberToAscii(escapedData.getSize()>0?1:0,workingBuffer->getData()+3,1);
+
+    AsciiConverter::numberToAscii(insertSize>0?1:0,workingBuffer->getData()+3,1); //write the extended data byte
     
-    
-    
-    if(escapedData.getSize())
-    {
-        AsciiConverter::numberToAscii(escapedData.getSize(),workingBuffer->getData()+4,4);
-        memcpy(workingBuffer->getData()+8,escapedData.getData(),escapedData.getSize());
-        
-        return 4+escapedData.getSize();
-    }
-    else
-    {
-        return 0;
-    }
+
+    return insertSize;
 }
 
 bool CasioPacker::getExtendedData(Buffer * data, Buffer * input)
 {
-    unsigned char escapedDataData[MAX_CASIO_PACKET_SIZE*2];
-    Buffer escapedData(escapedDataData,MAX_CASIO_PACKET_SIZE*2);
-    
-    escapedData.setSize(getExtendedDataSize(input));
-    
-    if(escapedData.getSize() == 0)
-    {
-        return false;
-    }
-
-    memcpy(escapedData.getData(),input->getData()+8,escapedData.getSize());
+    Buffer escapedData(input->getData()+4,input->getSize()-4);
     
     if(CasioEscaper::restoreBuffer(&escapedData,data)) // Too small
     {
@@ -101,11 +96,11 @@ bool CasioPacker::getExtendedData(Buffer * data, Buffer * input)
 
 int CasioPacker::getExtendedDataSize(Buffer * input)
 {
-    int isExtended;
+    unsigned int isExtended;
     AsciiConverter::asciiToNumber(input->getData()+3,&isExtended,1);
     if(isExtended)
     {
-        int extendedDataSize;
+        unsigned int extendedDataSize;
         AsciiConverter::asciiToNumber(input->getData()+4, &extendedDataSize,4);
         return extendedDataSize;
     }
@@ -115,12 +110,14 @@ int CasioPacker::getExtendedDataSize(Buffer * input)
     }
 }
 
+#define MAX_CASIO_PACKET_SIZE 512 // Unknown, it should be fine
+
 bool CasioPacker::checkCorruption(Buffer * input)
 {
     Buffer checksumBuffer(input->getData(),input->getSize()-2);
     unsigned char checksum = CasioChecksum::compute(&checksumBuffer);
     
-    int originalChecksum;
+    unsigned int originalChecksum;
     AsciiConverter::asciiToNumber(input->getData()+input->getSize()-2, &originalChecksum,2);
     
     if(originalChecksum != checksum)
@@ -130,7 +127,7 @@ bool CasioPacker::checkCorruption(Buffer * input)
         printf("%d vs %d\n",originalChecksum,checksum);
         
 
-        int subtypeInt;
+        unsigned int subtypeInt;
         AsciiConverter::asciiToNumber(input->getData()+1,&subtypeInt,2); // subtype
         printf("Type%d Subtype%d\n",input->getData()[0],subtypeInt);
         
@@ -159,9 +156,9 @@ bool CasioPacker::unpack(CasioPacketInfo * packetInfo, Buffer * input)
     
     packetInfo->type = input->getData()[0]; // Type
     
-    int subtypeInt;
+    unsigned int subtypeInt;
     AsciiConverter::asciiToNumber(input->getData()+1,&subtypeInt,2); // subtype
-    packetInfo->subtype = subtypeInt;
+    packetInfo->subtype = (unsigned char) subtypeInt;
     
     
     if(getExtendedData(packetInfo->extendedData, input)) // extended

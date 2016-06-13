@@ -5,47 +5,54 @@
 #include <CasioPacker.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 
 bool CasioProtocolTools::connectProtocol(Socket * socket, int maxRetry)
 {
-    unsigned char dataBuffer[1024];
-    Buffer packetBuffer(dataBuffer,1024);
+    Buffer packet(NULL,0);
     Buffer emptyData(NULL,0);
     
     
     
     unsigned char gapFillingData[] = {0};
     Buffer gapFillingBuffer(gapFillingData,1);
-    SocketTools::sendBufferOrTimeout(socket,&gapFillingBuffer,10); // HACK: The first packet always seems to be lost, allows for faster connection
+    SocketTools::sendBufferOrTimeout(socket,&gapFillingBuffer,10); // HACK: The first packet always seems to be lost, skips the timeout
         
 
     int trycount = 0;
     
+    CasioPacketInfo packetInfo;
+    packetInfo.type = 5;
+    packetInfo.subtype = 0;
+    packetInfo.extendedData = &emptyData;
+    
+    if(CasioPacker::pack(packetInfo,&packet))
+    {
+        Log::error("Failed to pack the connect request !");
+        return true;
+    }
+    
     while(trycount < maxRetry)
     {
-        CasioPacketInfo packetInfo;
-        packetInfo.type = 5;
-        packetInfo.subtype = 0;
-        packetInfo.extendedData = &emptyData;
         
-        if(CasioPacker::pack(packetInfo,&packetBuffer))
-        {
-            Log::error("Failed to pack the connect request !");
-            return true;
-        }
-
         Log::info("Sending connection packet ...");
         
-        if(sendPacketAndAck(socket,&packetBuffer,CONNECT_SEND_TRYCOUNT))
+        if(sendPacketAndAck(socket,&packet,CONNECT_SEND_TRYCOUNT))
         {
             Log::error("Failed to send and ACK connection packet !");
             continue;
         }
+        else
+        {
+            Log::info("Protocol connected !");
+            free(packet.getData());
+            return false;
+        }
         
-        Log::info("Protocol connected !");
-        return false;
+        trycount++;
     }
 
+    free(packet.getData());
     return true;
 }
 bool CasioProtocolTools::disconnectProtocol(Socket * socket, int maxRetry)
@@ -56,24 +63,25 @@ bool CasioProtocolTools::disconnectProtocol(Socket * socket, int maxRetry)
     info.subtype = 0x0;
     info.extendedData = &emptyExtraBuffer;
     
-    unsigned char dataBuffer[1024];
-    Buffer packetBuffer(dataBuffer,1024);
+    Buffer packet(NULL,0);
     
-    if(CasioPacker::pack(info,&packetBuffer))
+    if(CasioPacker::pack(info,&packet))
     {
         Log::error("Failed to pack the disconnect signal!");
         return true;
     }
         
-    if(SocketTools::sendBufferOrTimeout(socket,&packetBuffer,maxRetry))
+    if(SocketTools::sendBufferOrTimeout(socket,&packet,maxRetry))
     {
         Log::error("Failed to send the disconnect packet !");
+        free(packet.getData());
         return true;
     }
     
+    free(packet.getData());
     return false;
 }
-bool CasioProtocolTools::sendPacketAndGetAnswer(Socket * socket, Buffer * packet, int timeout, CasioPacketInfo * result)
+bool CasioProtocolTools::sendPacketAndGetAnswer(Socket * socket, Buffer * packet, int maxRetry, CasioPacketInfo * result)
 {
     int trycount = 0;
     
@@ -83,7 +91,7 @@ bool CasioProtocolTools::sendPacketAndGetAnswer(Socket * socket, Buffer * packet
     unsigned char answerData[MAX_RECEIVED_PACKET_SIZE];
     Buffer answerBuffer(answerData,MAX_RECEIVED_PACKET_SIZE);
 
-    while(trycount < timeout)
+    while(trycount < maxRetry)
     {
         Log::debug("Sending message ...");
         
@@ -117,17 +125,21 @@ bool CasioProtocolTools::sendPacketAndGetAnswer(Socket * socket, Buffer * packet
                 return false;
             }
         }
+        else
+        {
+            Log::debug("Receive timeout, re-sending ...");
+        }
         trycount++;
     }
     
     return true;
 }
 
-bool CasioProtocolTools::sendPacketAndAck(Socket * socket, Buffer * packet, int timeout)
+bool CasioProtocolTools::sendPacketAndAck(Socket * socket, Buffer * packet, int maxRetry)
 {
     CasioPacketInfo info;
     
-    if(sendPacketAndGetAnswer(socket,packet,timeout,&info))
+    if(sendPacketAndGetAnswer(socket,packet,maxRetry,&info))
     {
         Log::error("Failed to send or get an answer from the calc !");
         return true;
@@ -143,7 +155,7 @@ bool CasioProtocolTools::sendPacketAndAck(Socket * socket, Buffer * packet, int 
         return true;
     }
 }
-bool CasioProtocolTools::sendAck(Socket * socket, int timeout)
+bool CasioProtocolTools::sendAck(Socket * socket, int maxRetry)
 {
     unsigned char ackData[6];
     Buffer ackPacket(ackData,6);
@@ -157,7 +169,7 @@ bool CasioProtocolTools::sendAck(Socket * socket, int timeout)
     
     CasioPacker::pack(info,&ackPacket);
 
-    if(SocketTools::sendBufferOrTimeout(socket,&ackPacket,timeout))
+    if(SocketTools::sendBufferOrTimeout(socket,&ackPacket,maxRetry))
     {
         return true;
     }

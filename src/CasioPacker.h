@@ -10,6 +10,8 @@ struct CasioPacketInfo
     Buffer * extendedData;
 };
 
+#define MINIMAL_PACKED_BUFFER_SIZE 6
+
 class CasioPacker
 {
 public:

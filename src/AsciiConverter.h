@@ -4,8 +4,8 @@
 class AsciiConverter
 {
 public:
-    static void numberToAscii(int number, unsigned char * outputBuffer, int byteCount);
-    static void asciiToNumber(unsigned char * inputBuffer, int * outputNumber, int byteCount);
+    static void numberToAscii(unsigned int number, unsigned char * outputBuffer, int byteCount);
+    static void asciiToNumber(unsigned char * inputBuffer, unsigned int * outputNumber, int byteCount);
 };
 
 #endif // _ASCIICONVERTER_H_

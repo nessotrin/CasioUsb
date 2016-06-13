@@ -7,21 +7,24 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <stdlib.h>
+
 
 bool FileUploader::sendFileRequest(const char * foldername, int dataSize, const char * filename, const char * devicename, unsigned char mode, Socket * socket)
 {
-    unsigned char packedData[2048];
-    Buffer packedBuffer(packedData,2048);
+    Buffer packet(NULL,0);
     
-    FileProtocol::buildSendRequestPacket(&packedBuffer,dataSize,foldername,filename,devicename,mode);
+    FileProtocol::buildSendRequestPacket(&packet,dataSize,foldername,filename,devicename,mode);
     
     CasioPacketInfo info;
     
-    if(CasioProtocolTools::sendPacketAndGetAnswer(socket,&packedBuffer,5,&info))
+    if(CasioProtocolTools::sendPacketAndGetAnswer(socket,&packet,5,&info))
     {
         Log::error("Failed to send the send file request !");
         return true;
     }
+    
+    free(packet.getData());
     
     if(info.type == 0x06 && info.subtype == 0x00)
     {
@@ -51,20 +54,22 @@ bool FileUploader::sendFileRequest(const char * foldername, int dataSize, const 
 
 bool FileUploader::sendFilePart(Buffer * data, Socket * socket, int partId, int partCount, int partSize)
 {
-    unsigned char packedData[2048];
-    Buffer packedBuffer(packedData,2048);
     
-    if(FileProtocol::buildFilePartPacket(&packedBuffer,data,partId,partCount,partSize))
+    Buffer packet(NULL,0);
+    
+    if(FileProtocol::buildFilePartPacket(&packet,data,partId,partCount,partSize))
     {
         Log::error("Failed to create the send part packet !");
         return true;
     }
     
-    if(CasioProtocolTools::sendPacketAndAck(socket,&packedBuffer,10))
+    if(CasioProtocolTools::sendPacketAndAck(socket,&packet,10))
     {
         Log::error("Failed to send the part packet !");
         return true;
     }
+    
+    free(packet.getData());
     
     return false;
 }
@@ -77,6 +82,8 @@ bool FileUploader::uploadFile(Socket * socket, const char * foldername, const ch
         Log::error("Failed to load the file !");
         return 1;
     }
+    
+    Log::debug("Sending file upload request ...");
     
     if(sendFileRequest(foldername,fileData.getSize(),filename,devicename,mode,socket))
     {

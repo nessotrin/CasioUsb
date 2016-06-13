@@ -8,8 +8,8 @@
 class SocketTools
 {
 public:
-    static bool sendBufferOrTimeout(Socket * socket, Buffer * buffer, int timeout);
-    static bool receiveBufferOrTimeout(Socket * socket, Buffer * buffer, int timeout, int minimum);
+    static bool sendBufferOrTimeout(Socket * socket, Buffer * buffer, int maxRetry);
+    static bool receiveBufferOrTimeout(Socket * socket, Buffer * buffer, int maxRetry, int minimum);
 
 };
 

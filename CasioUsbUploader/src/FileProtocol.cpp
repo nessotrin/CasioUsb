@@ -10,53 +10,64 @@
 
 bool FileProtocol::buildSendRequestPacket(Buffer * output, int dataSize, const char * foldername, const char * filename, const char * devicename, unsigned char mode)
 {
-    unsigned char data[1024];     //layout: mode+data_type+data_size+d[1-6]_size+d1+d2+d5
-    Buffer buffer(data,1024);
-    
-    AsciiConverter::numberToAscii(mode,buffer.getData(),2); //MODE (0x02 = overwrite ?)
-    AsciiConverter::numberToAscii(0x05,buffer.getData()+2,2); //data type
-    AsciiConverter::numberToAscii(dataSize,buffer.getData()+4,8); //data size
 
-    int folderNameSize = strlen(foldername);
-    int fileNameSize = strlen(filename);
-    int deviceNameSize = strlen(devicename);
+
+    size_t folderNameSize = strlen(foldername);
+    size_t fileNameSize = strlen(filename);
+    size_t deviceNameSize = strlen(devicename);
     
-    AsciiConverter::numberToAscii(folderNameSize,buffer.getData()+12,2); //D1 -> folder name size
-    AsciiConverter::numberToAscii(fileNameSize,buffer.getData()+14,2); //D2 -> file name size
-    AsciiConverter::numberToAscii(0,buffer.getData()+16,2);
-    AsciiConverter::numberToAscii(0,buffer.getData()+18,2);
-    AsciiConverter::numberToAscii(deviceNameSize,buffer.getData()+20,2); //D5 -> peripheral name size
-    AsciiConverter::numberToAscii(0,buffer.getData()+22,2);
+    unsigned char * dataPtr;     //layout: mode+data_type+data_size+d[1-6]_size+d1+d2+d5
     
-    memcpy(buffer.getData()+24,foldername,folderNameSize);
-    memcpy(buffer.getData()+24+folderNameSize,filename,fileNameSize);
-    memcpy(buffer.getData()+24+folderNameSize+fileNameSize,devicename,deviceNameSize);
+    int bufferSize = (int) 24+folderNameSize+fileNameSize+deviceNameSize;
+    dataPtr = (unsigned char *) malloc(bufferSize);
+    if(dataPtr == NULL)
+    {
+        Log::error("Failed to allocate the buffer !");
+        return true;
+    }
+    Buffer extendedDataBuffer(dataPtr,bufferSize);
     
-    buffer.setSize(24+folderNameSize+fileNameSize+deviceNameSize);
+    AsciiConverter::numberToAscii(mode,extendedDataBuffer.getData(),2); //MODE (0x02 = overwrite ?)
+    AsciiConverter::numberToAscii(0x05,extendedDataBuffer.getData()+2,2); //data type
+    AsciiConverter::numberToAscii(dataSize,extendedDataBuffer.getData()+4,8); //data size
+    
+    AsciiConverter::numberToAscii(folderNameSize,extendedDataBuffer.getData()+12,2); //D1 -> folder name size
+    AsciiConverter::numberToAscii(fileNameSize,extendedDataBuffer.getData()+14,2); //D2 -> file name size
+    AsciiConverter::numberToAscii(0,extendedDataBuffer.getData()+16,2);
+    AsciiConverter::numberToAscii(0,extendedDataBuffer.getData()+18,2);
+    AsciiConverter::numberToAscii(deviceNameSize,extendedDataBuffer.getData()+20,2); //D5 -> peripheral name size
+    AsciiConverter::numberToAscii(0,extendedDataBuffer.getData()+22,2);
+    
+    memcpy(extendedDataBuffer.getData()+24,foldername,folderNameSize);
+    memcpy(extendedDataBuffer.getData()+24+folderNameSize,filename,fileNameSize);
+    memcpy(extendedDataBuffer.getData()+24+folderNameSize+fileNameSize,devicename,deviceNameSize);
+    
     
     CasioPacketInfo info;
     info.type = 0x1;
     info.subtype = 0x45;
-    info.extendedData = &buffer;
+    info.extendedData = &extendedDataBuffer;
     
     if(CasioPacker::pack(info,output))
     {
         Log::error("Failed to pack send file request !");
+        free(dataPtr);
         return true;
     }
 
+    free(dataPtr);
     return false;
 }
 
 bool FileProtocol::buildFilePartPacket(Buffer * output, Buffer * data, int partId, int partCount, int partSize)
 {
-    unsigned char temporaryData[2048];
-    
-    if(output->getSize() < partSize+8)
+    unsigned char * temporaryData = (unsigned char *) malloc(partSize+8);
+    if(temporaryData == NULL)
     {
-        Log::error("buildFilePartPacket: impossible: Buffer too small !");
+        Log::error("Failed to alloc buffer !");
         return true;
     }
+    
     
     AsciiConverter::numberToAscii(partCount,temporaryData,4);
     AsciiConverter::numberToAscii(partId+1,temporaryData+4,4); // starts at 1
@@ -77,8 +88,10 @@ bool FileProtocol::buildFilePartPacket(Buffer * output, Buffer * data, int partI
     if(CasioPacker::pack(info,output))
     {
         Log::error("Failed to pack file part !");
+        free(temporaryData);
         return true;
     }
     
+    free(temporaryData);
     return false;
 }

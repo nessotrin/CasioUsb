@@ -6,7 +6,7 @@
 class CasioEscaper
 {
 public:
-    static bool escapeBuffer(Buffer * input, Buffer * output);
+    static bool escapeBuffer(Buffer * input, Buffer * output, int outputOffset);
     static bool restoreBuffer(Buffer * input, Buffer * output);
 
 };

@@ -1,6 +1,6 @@
 #include "SocketTools.h"
 
-bool SocketTools::sendBufferOrTimeout(Socket * socket, Buffer * buffer, int timeout)
+bool SocketTools::sendBufferOrTimeout(Socket * socket, Buffer * buffer, int maxRetry)
 {
     int tryCount = 0;
     int writeSize = 0;
@@ -10,7 +10,7 @@ bool SocketTools::sendBufferOrTimeout(Socket * socket, Buffer * buffer, int time
         socket->sendBuffer(&appendBuffer);
         writeSize += appendBuffer.getSize();
         tryCount++;
-        if(tryCount >= timeout)
+        if(tryCount >= maxRetry)
         {
             return true;
         }
@@ -18,11 +18,11 @@ bool SocketTools::sendBufferOrTimeout(Socket * socket, Buffer * buffer, int time
     return false;
 }
 
-bool SocketTools::receiveBufferOrTimeout(Socket * socket, Buffer * buffer, int timeout, int minimum)
+bool SocketTools::receiveBufferOrTimeout(Socket * socket, Buffer * buffer, int maxRetry, int minimum)
 {
     int readSize = 0;
     int tryCount = 0;
-    while(tryCount < timeout)
+    while(tryCount < maxRetry)
     {
         Buffer appendBuffer(buffer->getData()+readSize,buffer->getSize()-readSize);
         socket->receiveBuffer(&appendBuffer);

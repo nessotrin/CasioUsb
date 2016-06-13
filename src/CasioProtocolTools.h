@@ -17,9 +17,9 @@ public:
     static bool connectProtocol(Socket * socket, int maxRetry);
     static bool disconnectProtocol(Socket * socket, int maxRetry);
     
-    static bool sendPacketAndGetAnswer(Socket * socket, Buffer * packet, int timeout, CasioPacketInfo * result);
-    static bool sendPacketAndAck(Socket * socket, Buffer * packet, int timeout);
-    static bool sendAck(Socket * socket, int timeout);
+    static bool sendPacketAndGetAnswer(Socket * socket, Buffer * packet, int maxRetry, CasioPacketInfo * result);
+    static bool sendPacketAndAck(Socket * socket, Buffer * packet, int maxRetry);
+    static bool sendAck(Socket * socket, int maxRetry);
 
 };
 
