@@ -60,21 +60,12 @@ int CasioPacker::insertExtendedData(Buffer * toInsert, Buffer * workingBuffer)
     
     if(toInsert->getSize() > 0)
     {
-        CasioEscaper::escapeBuffer(toInsert,workingBuffer,8);
-        insertSize = workingBuffer->getSize()-8; //get the escaped size
-        
-        workingBuffer->setData((unsigned char *)realloc(workingBuffer->getData(),workingBuffer->getSize()+4)); //adds the space for size bytes
-        if(workingBuffer->getData() == NULL)
-        {
-            Log::error("Failed to realloc !");
-            return -1;
-        }
-        workingBuffer->setSize(workingBuffer->getSize()+4);
-        
-        AsciiConverter::numberToAscii(insertSize,workingBuffer->getData()+4,4); //writes the size
-        insertSize += 4; // add the size bytes
-    }
+        CasioEscaper::escapeBuffer(toInsert,workingBuffer,8); //escape & copy => starts at 8 after (base) 4 + (data size) 4  
 
+       	insertSize = workingBuffer->getSize() - 8; // get raw data size
+        AsciiConverter::numberToAscii(insertSize,workingBuffer->getData()+4,4); //writes the size
+    	insertSize += 4; //add size bytes back
+    }
 
     AsciiConverter::numberToAscii(insertSize>0?1:0,workingBuffer->getData()+3,1); //write the extended data byte
     
